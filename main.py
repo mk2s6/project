@@ -20,7 +20,6 @@ from sklearn.metrics import classification_report
 import ex as acousticGenerator
 
 act_Data = acousticGenerator.acoustics
-print(act_Data)
 
 
 FLAGS = None
@@ -57,18 +56,10 @@ def splitdataset(data, label):
     Y = label
   
     # Spliting the dataset into train and test 
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.1, random_state = 100) 
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0, random_state = 100) 
       
     return X_train, X_test, y_train, y_test 
   
-# Function to make predictions 
-def prediction(X_test, clf_object): 
-  
-    # Prediction on test with giniIndex 
-    y_pred = clf_object.predict(X_test) 
-    print("Predicted values:") 
-    print(y_pred) 
-    return y_pred 
       
 # Function to calculate accuracy 
 def cal_accuracy(y_test, y_pred, targets): 
@@ -86,74 +77,39 @@ def integrated(dataset, actual):
     print(actual)
   
 def main(_):
-    # print(FLAGS.data)
     data_set = pd.read_csv(FLAGS.data)
-    # data_set.head()
-    # print(data_set.head())
-    # print(data_set["label"].unique())
     data_set_processed, targets = map_target(data_set, "label")
-    # print(data_set_processed.head())
-    # print(data_set_processed.tail())
-    print(targets)
+    # print(targets)
     features = list(data_set_processed.columns[:20])
-    print(features)
-    y = data_set_processed["label"]
-    # print(y.head())
-    x = data_set_processed[features]
-    # print(x)
-    x_train, x_test, y_train, y_test = splitdataset(x, y)
-    # print("Training values")
-    # print(x_train)
-    # print("Training labels")
-    # print(y_train)
-    # print("Testing values")
-    # print(x_test)
-    # print("Testing lables")
-    # print(y_test)
+    # print(features)
+    print(act_Data[features])
 
-    print("\n\n CART\n\n")
+    y = data_set_processed["label"]
+    x = data_set_processed[features]
+    x_train, x_test, y_train, y_test = splitdataset(x, y)
+
     CART_train = DecisionTreeClassifier(min_samples_split=500, random_state=99)
     CART_train.fit(x_train, y_train)
-    CART_pred = CART_train.predict(x_test)
     CART_train_pred =  CART_train.predict(x_train)
+    # CART_pred = CART_train.predict(x_test)
     CART_act_pred = CART_train.predict(act_Data)
-    print(CART_act_pred)
+    # print(CART_act_pred)
 
-    # visualize_tree(CART_train, features, 'CART.dot')
-    print("Training Measures")
-    cal_accuracy(y_train, CART_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, CART_pred, targets)
-
-    print('\n\n SVM \n\n')
-    SVM_train = svm.SVC(gamma='auto')
+    SVM_train = svm.SVC(gamma='auto', kernel='linear')
     SVM_train.fit(x_train, y_train)
     SVM_train_pred = SVM_train.predict(x_train)
-    SVM_pred = SVM_train.predict(x_test)
+    # SVM_pred = SVM_train.predict(x_test)
     SVM_act_pred = SVM_train.predict(act_Data)
-    print(SVM_act_pred)
-    # visualize_tree(SVM_train, features, 'SVM.dot')
-    print("Training Measures")
-    cal_accuracy( y_train , SVM_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, SVM_pred, targets)
+    # print(SVM_act_pred)
 
 
-    print('\n\n RFC \n\n')
-    RFC_train = RandomForestClassifier(n_estimators=10)
+    RFC_train = RandomForestClassifier(n_estimators=2)
     RFC_train.fit(x_train, y_train)
     RFC_train_pred = RFC_train.predict(x_train)
-    RFC_pred = RFC_train.predict(x_test)
+    # RFC_pred = RFC_train.predict(x_test)
     RFC_act_pred = RFC_train.predict(act_Data)
-    print(RFC_act_pred)
-    # visualize_tree(RFC_train, features, 'RFC.dot')
-    print("Training Measures")
-    cal_accuracy( y_train , RFC_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, RFC_pred, targets)
+    # print(RFC_act_pred)
 
-
-    print('\n\n XGB \n\n')
     original_params = {'n_estimators': 1000, 'max_leaf_nodes': 2, 'max_depth': None, 'random_state': 2,
                     'min_samples_split': 5}
 
@@ -166,55 +122,42 @@ def main(_):
     XGB_train = GradientBoostingClassifier(**params)
     XGB_train = XGB_train.fit(x_train, y_train)
     XGB_train_pred = XGB_train.predict(x_train)
-    XGB_pred = XGB_train.predict(x_test)
+    # XGB_pred = XGB_train.predict(x_test)
     XGB_act_pred = XGB_train.predict(act_Data)
-    print(XGB_act_pred)
-    print("Training Measures")
-    cal_accuracy( y_train , XGB_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, XGB_pred, targets)
+    # print(XGB_act_pred)
 
-    print('\n\n ADA \n\n')
     ADA_train =  AdaBoostClassifier(n_estimators=50, learning_rate=1)
 
     ADA_train.fit(x_train, y_train)
     ADA_train_pred = ADA_train.predict(x_train)
-    ADA_pred = ADA_train.predict(x_test)
+    # ADA_pred = ADA_train.predict(x_test)
     ADA_act_pred = ADA_train.predict(act_Data)
 
-    print(ADA_act_pred)
-    print("Training Measures")
-    cal_accuracy( y_train , ADA_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, ADA_pred, targets)
-
-    # int_train = [ CART_train_pred, SVM_train_pred, RFC_train_pred, XGB_train_pred, ADA_train_pred, y_train ]
-    # int_test = [ CART_pred, SVM_pred, RFC_pred, XGB_pred, ADA_pred, y_test ]
-    # int_data_columns = ['CART', 'SVM', 'RFC', 'XGB', 'ADA', 'label']
 
     train_data = { 'CART' : CART_train_pred, 'SVM' : SVM_train_pred, 'RFC' : RFC_train_pred, 'XGB' : XGB_train_pred, 'ADA' : ADA_train_pred}
-    test_data = { 'CART' : CART_pred, 'SVM' : SVM_pred, 'RFC' : RFC_pred, 'XGB' : XGB_pred, 'ADA' : ADA_pred }
+    # test_data = { 'CART' : CART_pred, 'SVM' : SVM_pred, 'RFC' : RFC_pred, 'XGB' : XGB_pred, 'ADA' : ADA_pred }
     act_pred_data = {'CART' : CART_act_pred, 'SVM' : SVM_act_pred, 'RFC' : RFC_act_pred, 'XGB' : XGB_act_pred, 'ADA' : ADA_act_pred}
     int_train_data = pd.DataFrame(train_data)
-    int_test_data = pd.DataFrame(test_data)
+    # int_test_data = pd.DataFrame(test_data)
     int_act_data = pd.DataFrame(act_pred_data)
 
     # print(int_train_data)
     # print(int_test_data)
     print(int_act_data)
 
-    print('\n\n INT \n\n')
-    INT_train = RandomForestClassifier(n_estimators=10)
+    INT_train = svm.SVC(gamma='auto', kernel='linear')
     INT_train.fit(int_train_data, y_train)
-    INT_train_pred = INT_train.predict(int_train_data)
-    INT_pred = INT_train.predict(int_test_data)
+    # INT_train_pred = INT_train.predict(int_train_data)
+    # INT_pred = INT_train.predict(int_test_data)
     INT_act_pred = INT_train.predict(int_act_data)
-    print(INT_act_pred)
+    # print(INT_act_pred)
     # visualize_tree(INT_train, features, 'INT.dot')
-    print("Training Measures")
-    cal_accuracy( y_train , INT_train_pred, targets)
-    print("Testing Measures")
-    cal_accuracy(y_test, INT_pred, targets)
+
+    for data in INT_act_pred:
+        if data == 1:
+            print('\n\nOutput: The given voice belongs to Female')
+        else:
+            print('\n\nOutput: The given voice belongs to Male')
 
 
 if __name__ == "__main__":
